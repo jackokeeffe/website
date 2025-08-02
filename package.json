@@ -1,0 +1,26 @@
+{
+  "name": "jackokeeffe-portfolio",
+  "version": "1.0.0",
+  "description": "Personal portfolio website with RSS feed generation",
+  "main": "rss-generator.js",
+  "type": "module",
+  "scripts": {
+    "generate-rss": "node rss-generator.js",
+    "update-rss": "./update-rss.sh"
+  },
+  "dependencies": {
+    "@xmldom/xmldom": "^0.8.10"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "portfolio",
+    "rss",
+    "github",
+    "mastodon",
+    "letterboxd"
+  ],
+  "author": "Jack O'Keeffe",
+  "license": "MIT"
+} 

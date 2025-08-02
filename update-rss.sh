@@ -9,15 +9,11 @@ echo "🔄 Updating RSS Feed..."
 if command -v node &> /dev/null; then
     echo "📦 Using Node.js RSS generator..."
     node rss-generator.js
-elif command -v php &> /dev/null; then
-    echo "🐘 Using PHP RSS generator..."
-    php generate-rss.php
 else
-    echo "❌ Error: Neither Node.js nor PHP is available"
-    echo "Please install Node.js or PHP to generate the RSS feed"
+    echo "❌ Error: Node.js is not available"
+    echo "Please install Node.js to generate the RSS feed"
     exit 1
 fi
 
 echo "✅ RSS feed updated successfully!"
-echo "📄 Feed available at: rss.xml"
-echo "🌐 Web page available at: rss.html" 
+echo "📄 Feed available at: rss.xml" 

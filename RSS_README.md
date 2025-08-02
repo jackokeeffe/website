@@ -1,23 +1,17 @@
 # RSS Feed for Jack O'Keeffe's Portfolio
 
-This portfolio website now includes an RSS feed that aggregates recent activity from multiple platforms.
+This portfolio website includes an RSS feed that aggregates recent activity from multiple platforms.
 
-## RSS Feed URLs
+## RSS Feed URL
 
-- **Dynamic Feed**: `https://jackokeeffe.com/rss.php` (requires PHP)
-- **Static Feed**: `https://jackokeeffe.com/rss.xml` (fallback option)
+- **Static Feed**: `https://jackokeeffe.com/rss.xml`
 
-## Generation Options
+## Generation Method
 
-### Option 1: PHP (Recommended)
-- **File**: `rss.php` - Dynamic RSS feed generator
-- **Generator**: `generate-rss.php` - Static feed generator
-- **Requirements**: PHP with `allow_url_fopen` enabled
-
-### Option 2: Node.js (Alternative)
+### Node.js RSS Generator
 - **File**: `rss-generator.js` - Node.js RSS feed generator
 - **Requirements**: Node.js 18+ with fetch support
-- **Usage**: `node rss-generator.js`
+- **Usage**: `node rss-generator.js` or `npm run generate-rss`
 
 ## What's Included
 
@@ -31,7 +25,7 @@ The RSS feed includes recent activity from:
 ## How to Subscribe
 
 ### RSS Readers
-1. Copy the RSS feed URL: `https://jackokeeffe.com/rss.php`
+1. Copy the RSS feed URL: `https://jackokeeffe.com/rss.xml`
 2. Add it to your favorite RSS reader (Feedly, Inoreader, etc.)
 
 ### Browser Extensions
@@ -41,43 +35,33 @@ The RSS feed includes recent activity from:
 ### Command Line
 ```bash
 # Using curl to check the feed
-curl https://jackokeeffe.com/rss.php
+curl https://jackokeeffe.com/rss.xml
 
 # Using wget to download the feed
-wget https://jackokeeffe.com/rss.php -O feed.xml
+wget https://jackokeeffe.com/rss.xml -O feed.xml
 ```
 
 ## Feed Updates
 
-- **Dynamic Feed**: Updates automatically when accessed
-- **Static Feed**: Can be updated manually or via cron job
+The static RSS feed can be updated manually or via cron job.
 
-### Updating the Static Feed
+### Updating the Feed
 
-If you want to generate a static RSS feed (useful for static hosting):
-
-#### Using PHP:
-```bash
-# Run the PHP generator script
-php generate-rss.php
-```
-
-#### Using Node.js:
 ```bash
 # Run the Node.js generator script
 node rss-generator.js
+
+# Or use npm script
+npm run generate-rss
+
+# Or use the update script
+./update-rss.sh
 ```
 
 ### Setting up Automatic Updates
 
-Add this to your crontab to update the static feed every hour:
+Add this to your crontab to update the feed every hour:
 
-#### Using PHP:
-```bash
-0 * * * * cd /path/to/portfolio && php generate-rss.php
-```
-
-#### Using Node.js:
 ```bash
 0 * * * * cd /path/to/portfolio && node rss-generator.js
 ```
@@ -89,25 +73,25 @@ The feed includes:
 - **Description**: Recent activity across all platforms
 - **Language**: English (en-US)
 - **TTL**: 60 minutes (cache time)
-- **Max Items**: 20 most recent activities
+- **Max Items**: 8 most recent activities (matching the recent activity section)
 
 ## Troubleshooting
-
-### If the dynamic feed doesn't work:
-1. Check if PHP is enabled on your server
-2. Verify that `allow_url_fopen` is enabled in PHP
-3. Use the static feed (`rss.xml`) as a fallback
-4. Try the Node.js generator as an alternative
 
 ### If you see no content:
 1. Check if the external APIs are accessible
 2. Verify your GitHub username and Mastodon handle are correct
 3. Check server error logs for any issues
+4. Ensure Node.js 18+ is installed
+
+### If the generator fails:
+1. Check if all dependencies are installed: `npm install`
+2. Verify network connectivity to external APIs
+3. Check the console output for specific error messages
 
 ## Customization
 
 To modify the feed:
-1. Edit `rss.php` to change feed settings
+1. Edit `rss-generator.js` to change feed settings
 2. Update the feed title, description, and language
 3. Modify the activity parsing functions as needed
 4. Adjust the number of items per platform

@@ -13,6 +13,7 @@
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
+import { DOMParser } from '@xmldom/xmldom';
 
 // RSS Feed Configuration
 const feedConfig = {
@@ -24,10 +25,10 @@ const feedConfig = {
   email: "jokeeffe@protonmail.ch"
 };
 
-// Function to fetch GitHub activity
+// Function to fetch GitHub activity (matching the recent activity section)
 async function fetchGitHubActivity() {
   try {
-    const response = await fetch('https://api.github.com/users/jackokeeffe/events?per_page=10', {
+    const response = await fetch('https://api.github.com/users/jackokeeffe/events?per_page=8', {
       headers: {
         'User-Agent': 'JackOKeeffe-RSS/1.0',
         'Accept': 'application/vnd.github.v3+json'
@@ -43,6 +44,21 @@ async function fetchGitHubActivity() {
     const activities = [];
     
     for (const event of events) {
+      // Only include displayable events (matching the recent activity section)
+      const displayableTypes = [
+        'PushEvent',
+        'CreateEvent',
+        'WatchEvent',
+        'ForkEvent',
+        'PullRequestEvent',
+        'IssuesEvent',
+        'CommitCommentEvent'
+      ];
+      
+      if (!displayableTypes.includes(event.type)) {
+        continue;
+      }
+      
       let description = '';
       let link = '';
       
@@ -78,6 +94,10 @@ async function fetchGitHubActivity() {
           description = `${issueAction} issue: ${issueTitle}`;
           link = `https://github.com/${event.repo.name}`;
           break;
+        case 'CommitCommentEvent':
+          description = `Commented on commit in ${event.repo.name}`;
+          link = `https://github.com/${event.repo.name}`;
+          break;
         default:
           continue;
       }
@@ -99,54 +119,107 @@ async function fetchGitHubActivity() {
   }
 }
 
-// Function to fetch Mastodon activity
+// Function to fetch Mastodon activity (matching the recent activity section)
 async function fetchMastodonActivity() {
   try {
-    const response = await fetch('https://mastodon.social/@jackokeeffe.rss', {
-      headers: {
-        'User-Agent': 'JackOKeeffe-RSS/1.0'
-      }
-    });
+    // Try multiple CORS proxies like the recent activity section
+    const rssUrl = 'https://mastodon.social/@jackokeeffe.rss';
+    const proxies = [
+      `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`,
+      `https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}`,
+      `https://thingproxy.freeboard.io/fetch/${rssUrl}`
+    ];
     
-    if (!response.ok) {
-      console.log('Mastodon RSS error:', response.status);
+    let data = null;
+    let lastError = null;
+    
+    // Try each proxy until one works
+    for (const proxyUrl of proxies) {
+      try {
+        console.log('Trying Mastodon proxy:', proxyUrl);
+        const response = await fetch(proxyUrl);
+        
+        if (!response.ok) {
+          throw new Error(`Proxy error: ${response.status}`);
+        }
+        
+        const responseData = await response.json();
+        
+        // Handle different proxy response formats
+        if (responseData.contents) {
+          // AllOrigins format
+          const base64Content = responseData.contents.split(',')[1];
+          const xmlContent = Buffer.from(base64Content, 'base64').toString();
+          
+          const parser = new DOMParser();
+          const xmlDoc = parser.parseFromString(xmlContent, 'text/xml');
+          const items = xmlDoc.querySelectorAll('item');
+          
+          data = {
+            items: Array.from(items).slice(0, 5).map(item => ({
+              title: item.querySelector('title')?.textContent || '',
+              link: item.querySelector('link')?.textContent || '',
+              pubDate: item.querySelector('pubDate')?.textContent || '',
+              description: item.querySelector('description')?.textContent || ''
+            }))
+          };
+        } else if (responseData.items && responseData.items.length > 0) {
+          // RSS2JSON format
+          data = responseData;
+        } else {
+          continue;
+        }
+        
+        console.log('Successfully fetched Mastodon RSS via proxy');
+        break;
+        
+      } catch (error) {
+        console.log('Mastodon proxy failed:', error.message);
+        lastError = error;
+        continue;
+      }
+    }
+    
+    if (!data) {
+      console.log('All Mastodon proxies failed');
       return [];
     }
     
-    const xmlText = await response.text();
     const activities = [];
     
-    // Simple XML parsing for RSS
-    const items = xmlText.match(/<item>([\s\S]*?)<\/item>/g);
-    
-    if (items) {
-      for (let i = 0; i < Math.min(items.length, 5); i++) {
-        const item = items[i];
+    // Process up to 5 items (matching recent activity section)
+    for (let i = 0; i < Math.min(data.items.length, 5); i++) {
+      const item = data.items[i];
+      
+      if (item.link && item.pubDate) {
+        const link = item.link;
+        const pubDate = new Date(item.pubDate).toUTCString();
         
-        const titleMatch = item.match(/<title>(.*?)<\/title>/);
-        const linkMatch = item.match(/<link>(.*?)<\/link>/);
-        const pubDateMatch = item.match(/<pubDate>(.*?)<\/pubDate>/);
+        // Use title, description, or content (matching recent activity section)
+        let content = item.title || item.description || item.content || 'Posted on Mastodon';
+        content = content.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
         
-        if (titleMatch && linkMatch && pubDateMatch) {
-          const title = titleMatch[1].replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
-          const link = linkMatch[1];
-          const pubDate = new Date(pubDateMatch[1]).toUTCString();
-          
-          // Clean up content
-          let cleanContent = title.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
-          if (!cleanContent) {
-            cleanContent = 'Posted on Mastodon';
-          }
-          
-                     activities.push({
-             title: cleanContent,
-             description: cleanContent,
-             link: link,
-             pubDate: pubDate,
-             guid: crypto.createHash('md5').update(link).digest('hex'),
-             platform: 'Mastodon'
-           });
+        // Clean up content (matching recent activity section)
+        let cleanContent = content.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+        if (!cleanContent) {
+          cleanContent = 'Posted on Mastodon';
         }
+        
+        // Truncate if too long (matching recent activity section)
+        if (cleanContent.length > 100) {
+          cleanContent = cleanContent.substring(0, 100) + '...';
+        }
+        
+        const activity = {
+          title: cleanContent,
+          description: cleanContent,
+          link: link,
+          pubDate: pubDate,
+          guid: crypto.createHash('md5').update(link).digest('hex'),
+          platform: 'Mastodon'
+        };
+        
+        activities.push(activity);
       }
     }
     
@@ -157,53 +230,152 @@ async function fetchMastodonActivity() {
   }
 }
 
-// Function to fetch Letterboxd activity
+// Function to fetch Nostr activity (matching the recent activity section)
+async function fetchNostrActivity() {
+  try {
+    console.log('Starting Nostr activity fetch...');
+    const pubkey = 'npub17reuqeddvdxuh6m0v8q53kk57n3a69su8m8x50u5ucu2qf8zj52qfls7nf';
+    
+    // For now, skip Nostr as it requires proper nostr-tools library in Node.js
+    // The recent activity section uses browser-based nostr-tools which isn't available here
+    console.log('Skipping Nostr activity - requires browser-based nostr-tools library');
+    return [];
+    
+  } catch (error) {
+    console.log('Error fetching Nostr activity:', error.message);
+    return [];
+  }
+}
+
+// Function to fetch Letterboxd activity (matching the recent activity section)
 async function fetchLetterboxdActivity() {
   try {
-    const response = await fetch('https://letterboxd.com/jackokeeffe/rss/', {
-      headers: {
-        'User-Agent': 'JackOKeeffe-RSS/1.0'
-      }
-    });
+    const rssUrl = 'https://letterboxd.com/jackokeeffe/rss/';
     
-    if (!response.ok) {
-      console.log('Letterboxd RSS error:', response.status);
+    // Try multiple RSS proxies with cache busting (matching recent activity section)
+    const timestamp = Date.now();
+    const randomId = Math.random().toString(36).substring(2, 15);
+    const cacheBusters = [
+      `_t=${timestamp}`,
+      `cb=${randomId}`,
+      `nocache=${timestamp}`,
+      `v=${timestamp}`
+    ];
+    
+    const proxies = [
+      {
+        url: `https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}&${cacheBusters[2]}&${cacheBusters[3]}`,
+        name: 'AllOrigins',
+        handler: (data) => {
+          if (data.contents) {
+            try {
+              const base64Content = data.contents.split(',')[1];
+              const xmlContent = Buffer.from(base64Content, 'base64').toString();
+              
+              const parser = new DOMParser();
+              const xmlDoc = parser.parseFromString(xmlContent, 'text/xml');
+              const items = xmlDoc.querySelectorAll('item');
+              
+              return {
+                items: Array.from(items).map(item => ({
+                  title: item.querySelector('title')?.textContent || '',
+                  link: item.querySelector('link')?.textContent || '',
+                  pubDate: item.querySelector('pubDate')?.textContent || '',
+                  description: item.querySelector('description')?.textContent || ''
+                }))
+              };
+            } catch (parseError) {
+              console.log('Failed to parse AllOrigins XML:', parseError.message);
+              return null;
+            }
+          }
+          return null;
+        }
+      },
+      {
+        url: `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}&${cacheBusters[0]}&${cacheBusters[1]}&nocache=1`,
+        name: 'RSS2JSON',
+        handler: (data) => data.items ? data : null
+      },
+      {
+        url: `https://thingproxy.freeboard.io/fetch/${rssUrl}?_t=${Date.now()}`,
+        name: 'ThingProxy',
+        handler: (data) => data.items ? data : null
+      }
+    ];
+    
+    let data = null;
+    let lastError = null;
+    
+    for (const proxy of proxies) {
+      try {
+        console.log(`Trying Letterboxd RSS proxy: ${proxy.name}`);
+        
+        const response = await fetch(proxy.url);
+        
+        if (!response.ok) {
+          throw new Error(`${proxy.name} error: ${response.status}`);
+        }
+        
+        const responseData = await response.json();
+        
+        // Use the proxy-specific handler
+        data = proxy.handler(responseData);
+        
+        if (data) {
+          console.log(`Successfully fetched via ${proxy.name}`);
+          break;
+        } else {
+          console.log(`${proxy.name} returned invalid data format`);
+          continue;
+        }
+        
+      } catch (error) {
+        console.log(`${proxy.name} failed:`, error.message);
+        lastError = error;
+        continue;
+      }
+    }
+    
+    if (!data) {
+      console.log('All Letterboxd proxies failed');
       return [];
     }
     
-    const xmlText = await response.text();
+    if (!data.items || data.items.length === 0) {
+      console.log('No Letterboxd items found');
+      return [];
+    }
+    
+    // Sort items by date (most recent first)
+    const sortedItems = data.items.sort((a, b) => {
+      const dateA = new Date(a.pubDate);
+      const dateB = new Date(b.pubDate);
+      return dateB - dateA;
+    });
+    
     const activities = [];
     
-    // Simple XML parsing for RSS
-    const items = xmlText.match(/<item>([\s\S]*?)<\/item>/g);
-    
-    if (items) {
-      for (let i = 0; i < Math.min(items.length, 5); i++) {
-        const item = items[i];
+    // Process up to 10 items (matching recent activity section)
+    for (let i = 0; i < Math.min(sortedItems.length, 10); i++) {
+      const item = sortedItems[i];
+      
+      if (item.title && item.link && item.pubDate) {
+        // Parse movie info from title (matching recent activity section)
+        const movieInfo = parseLetterboxdTitle(item.title);
         
-        const titleMatch = item.match(/<title>(.*?)<\/title>/);
-        const linkMatch = item.match(/<link>(.*?)<\/link>/);
-        const pubDateMatch = item.match(/<pubDate>(.*?)<\/pubDate>/);
+        const description = `Watched - ${movieInfo.title}`;
         
-        if (titleMatch && linkMatch && pubDateMatch) {
-          const title = titleMatch[1].replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
-          const link = linkMatch[1];
-          const pubDate = new Date(pubDateMatch[1]).toUTCString();
-          
-          // Parse movie info from title (e.g., "Movie Title, 2024 - ★★★★")
-          const cleanTitle = title.replace(/\s*-\s*[★☆]+.*$/, '');
-          const yearMatch = cleanTitle.match(/, (\d{4})/);
-          const finalTitle = yearMatch ? cleanTitle.replace(/, \d{4}/, '') : cleanTitle;
-          
-                     activities.push({
-             title: `Watched - ${finalTitle.trim()}`,
-             description: `Watched - ${finalTitle.trim()}`,
-             link: link,
-             pubDate: pubDate,
-             guid: crypto.createHash('md5').update(link).digest('hex'),
-             platform: 'Letterboxd'
-           });
-        }
+        const activity = {
+          title: description,
+          description: description,
+          link: item.link,
+          pubDate: new Date(item.pubDate).toUTCString(),
+          guid: crypto.createHash('md5').update(item.link).digest('hex'),
+          platform: 'Letterboxd'
+        };
+        
+        activities.push(activity);
       }
     }
     
@@ -212,6 +384,30 @@ async function fetchLetterboxdActivity() {
     console.log('Error fetching Letterboxd activity:', error.message);
     return [];
   }
+}
+
+// Helper function to parse Letterboxd title (matching recent activity section)
+function parseLetterboxdTitle(title) {
+  // Example titles:
+  // "Presence, 2024 - ★★"
+  // "Eddington, 2025 - ★★"
+  // "The Place Beyond the Pines, 2012 - ★★★★"
+  
+  let cleanTitle = title;
+  
+  // Extract year first
+  const yearMatch = title.match(/, (\d{4})/);
+  if (yearMatch) {
+    // Get title up to the year (including the full year)
+    cleanTitle = title.substring(0, title.indexOf(', ' + yearMatch[1]) + 6);
+  }
+  
+  // Remove any rating/stars that might be left
+  cleanTitle = cleanTitle.replace(/\s*-\s*[★☆]+.*$/, '');
+  
+  return {
+    title: cleanTitle.trim()
+  };
 }
 
 // Function to generate RSS XML
@@ -255,10 +451,11 @@ async function main() {
   console.log('Generating RSS feed...');
   
   try {
-    // Fetch all activities
-    const [githubActivities, mastodonActivities, letterboxdActivities] = await Promise.allSettled([
+    // Fetch all activities (matching recent activity section)
+    const [githubActivities, mastodonActivities, nostrActivities, letterboxdActivities] = await Promise.allSettled([
       fetchGitHubActivity(),
       fetchMastodonActivity(),
+      fetchNostrActivity(),
       fetchLetterboxdActivity()
     ]);
     
@@ -272,15 +469,19 @@ async function main() {
       allActivities = allActivities.concat(mastodonActivities.value);
     }
     
+    if (nostrActivities.status === 'fulfilled') {
+      allActivities = allActivities.concat(nostrActivities.value);
+    }
+    
     if (letterboxdActivities.status === 'fulfilled') {
       allActivities = allActivities.concat(letterboxdActivities.value);
     }
     
-    // Sort by date (most recent first)
+    // Sort by date (most recent first) - matching recent activity section
     allActivities.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
     
-    // Limit to 20 items
-    allActivities = allActivities.slice(0, 20);
+    // Limit to exactly 8 items (matching recent activity section)
+    allActivities = allActivities.slice(0, 8);
     
     // Generate RSS XML
     const rssXML = generateRSSXML(allActivities);
@@ -294,6 +495,13 @@ async function main() {
     console.log(`Items: ${allActivities.length}`);
     console.log(`Generated: ${new Date().toISOString()}`);
     
+    // Log breakdown by platform
+    const platformCounts = {};
+    allActivities.forEach(activity => {
+      platformCounts[activity.platform] = (platformCounts[activity.platform] || 0) + 1;
+    });
+    console.log('Platform breakdown:', platformCounts);
+    
   } catch (error) {
     console.error('Error generating RSS feed:', error);
     process.exit(1);
@@ -305,4 +513,4 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   main();
 }
 
-export { main, fetchGitHubActivity, fetchMastodonActivity, fetchLetterboxdActivity }; 
+export { main, fetchGitHubActivity, fetchMastodonActivity, fetchNostrActivity, fetchLetterboxdActivity }; 
