@@ -171,6 +171,18 @@ body{
 .projects-section {
     margin-top: 30px;
     margin-bottom: 30px;
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.projects-header-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
 }
 
 .projects-header {
@@ -178,30 +190,26 @@ body{
     font-size: 1.2rem;
     opacity: 0.9;
     letter-spacing: 0.01em;
-    margin: 0 0 20px 0;
+    margin: 0;
 }
 
-.projects-grid {
-    /* Removed grid layout - now using single full-width box */
+.projects-container {
+    /* Container for project items */
 }
 
-.project-box {
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    padding: 16px;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: all 0.3s ease;
+.project-item {
     display: flex;
     flex-direction: column;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transition: opacity 0.3s ease;
 }
 
-.project-box:hover {
-    background-color: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 255, 255, 0.2);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+.project-item:last-child {
+    border-bottom: none;
 }
+
+
 
 .project-header {
     display: flex;
@@ -281,27 +289,246 @@ body{
 
 /* Responsive design for projects */
 @media (max-width: 768px) {
-    .projects-grid {
-        grid-template-columns: 1fr;
-        gap: 16px;
+    .container {
+        padding: 40px 8px 20px 8px;
+        width: 100%;
+        box-sizing: border-box;
     }
     
-    .project-box {
-        padding: 20px;
+    .box {
+        max-width: 95%;
+        padding: 0 5px;
+        width: 95%;
+        box-sizing: border-box;
+        margin: 0 auto;
+    }
+    
+    .projects-section {
+        margin-top: 25px;
+        margin-bottom: 30px;
+        padding: 8px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .projects-header {
+        font-size: 0.9rem;
+    }
+    
+    .project-item {
+        padding: 5px 0;
     }
     
     .project-header {
-        gap: 10px;
-        margin-bottom: 10px;
+        gap: 6px;
+        margin-bottom: 6px;
     }
     
     .project-icon {
-        width: 28px;
-        height: 28px;
+        width: 22px;
+        height: 22px;
     }
     
     .project-icon i {
-        font-size: 14px;
+        font-size: 11px;
+    }
+    
+    .project-title {
+        font-size: 0.85rem;
+    }
+    
+    .project-description {
+        font-size: 0.7rem;
+        margin-bottom: 6px;
+    }
+    
+    .project-links {
+        gap: 4px;
+    }
+    
+    .project-link {
+        font-size: 0.65rem;
+        padding: 3px 5px;
+    }
+    
+    /* Recent Activity mobile optimizations */
+    .recent-activity {
+        margin-top: 25px;
+        margin-bottom: 30px;
+        padding: 8px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .activity-header {
+        font-size: 0.9rem;
+    }
+    
+    .activity-item {
+        padding: 5px 0;
+        gap: 5px;
+    }
+    
+    .activity-description {
+        font-size: 0.75rem;
+    }
+    
+    .activity-time {
+        font-size: 0.6rem;
+    }
+    
+    .activity-platform {
+        width: 14px;
+        height: 14px;
+    }
+    
+    .activity-platform i {
+        font-size: 7px;
+    }
+    
+    /* Social icons mobile optimization - two rows */
+    .social-icons {
+        margin-left: 20px;
+        gap: 6px;
+        max-width: calc(100% - 70px); /* Leave space for location */
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        grid-template-rows: repeat(2, 30px);
+        width: 216px; /* 6 icons * 30px + 5 gaps * 6px */
+    }
+    
+    .social-icon {
+        width: 30px;
+        height: 30px;
+        font-size: 13px;
+        flex-shrink: 0;
+    }
+    
+    /* Location mobile optimization */
+    .location {
+        height: 22px;
+        padding: 0 4px;
+        font-size: 0.75rem;
+        flex-shrink: 0;
+    }
+    
+    .location i {
+        font-size: 9px;
+    }
+    
+    /* Header section mobile optimization */
+    .header-section {
+        margin-bottom: 12px;
+    }
+    
+    .box h1 {
+        font-size: 1rem;
+        margin-bottom: 5px;
+    }
+    
+    .box p {
+        font-size: 0.75rem;
+        margin-bottom: 8px;
+    }
+    
+    /* Project title mobile optimization to match activity header */
+    .project-title {
+        font-size: 0.9rem;
+    }
+    
+    /* Ensure no horizontal overflow */
+    * {
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+}
+
+/* Extra small mobile devices */
+@media (max-width: 480px) {
+    .container {
+        padding: 30px 5px 15px 5px;
+    }
+    
+    .box {
+        max-width: 92%;
+        padding: 0 3px;
+        width: 92%;
+    }
+    
+    .projects-section {
+        padding: 6px;
+        margin-top: 20px;
+        margin-bottom: 25px;
+    }
+    
+    .recent-activity {
+        padding: 6px;
+        margin-top: 20px;
+        margin-bottom: 25px;
+    }
+    
+    .activity-item {
+        padding: 4px 0;
+    }
+    
+    .social-icons {
+        margin-left: 16px;
+        gap: 5px;
+        max-width: calc(100% - 65px);
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        grid-template-rows: repeat(2, 28px);
+        width: 198px; /* 6 icons * 28px + 5 gaps * 5px */
+    }
+    
+    .social-icon {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+    }
+    
+    .location {
+        height: 20px;
+        padding: 0 3px;
+        font-size: 0.7rem;
+    }
+    
+    .box h1 {
+        font-size: 0.9rem;
+    }
+    
+    .box p {
+        font-size: 0.7rem;
+    }
+    
+    .project-title {
+        font-size: 0.85rem;
+    }
+    
+    .project-description {
+        font-size: 0.65rem;
+    }
+    
+    .project-link {
+        font-size: 0.6rem;
+        padding: 2px 4px;
+    }
+    
+    .activity-description {
+        font-size: 0.7rem;
+    }
+    
+    .activity-time {
+        font-size: 0.55rem;
+    }
+    
+    .activity-platform {
+        width: 12px;
+        height: 12px;
+    }
+    
+    .activity-platform i {
+        font-size: 6px;
     }
 }
 
