@@ -6,7 +6,9 @@
   "type": "module",
   "scripts": {
     "generate-rss": "node rss-generator.js",
-    "update-rss": "./update-rss.sh"
+    "update-rss": "./update-rss.sh",
+    "start": "node server.js",
+    "dev": "node server.js"
   },
   "dependencies": {
     "@xmldom/xmldom": "^0.8.10"

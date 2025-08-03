@@ -58,9 +58,9 @@
             </div>
             
             <!-- Projects Section -->
-            <div class="projects-section">
-                <div class="projects-header-container">
-                    <h2 class="projects-header">Projects</h2>
+            <div class="recent-activity">
+                <div class="activity-header-container">
+                    <h2 class="activity-header">Projects</h2>
                 </div>
                 <div class="projects-container">
                     <div class="project-item">
@@ -75,21 +75,6 @@
                             <a href="https://proof-of-concept.ca" class="project-link" target="_blank">
                                 <i class="fas fa-external-link-alt"></i>
                                 View Homepage
-                            </a>
-                        </div>
-                    </div>
-                    <div class="project-item">
-                        <div class="project-header">
-                            <div class="project-icon">
-                                <i class="fas fa-code"></i>
-                            </div>
-                            <h3 class="project-title">PORTFOLIO</h3>
-                        </div>
-                        <p class="project-description">a personal portfolio website showcasing projects and recent activity.</p>
-                        <div class="project-links">
-                            <a href="https://github.com/jackokeeffe/portfolio" class="project-link" target="_blank">
-                                <i class="fab fa-github"></i>
-                                View Source
                             </a>
                         </div>
                     </div>
@@ -268,6 +253,9 @@
                 
                 console.log('Final activities to display:', allActivities.length);
                 displayAllActivities(allActivities);
+                
+                // Check for new activity and trigger RSS update
+                checkForNewActivityAndUpdateRSS(allActivities);
                 
             } catch (error) {
                 console.error('Error loading activities:', error);
@@ -1275,6 +1263,47 @@
             
             console.log('Parsed Letterboxd info:', result);
             return result;
+        }
+
+        // Function to trigger RSS feed update when new activity is detected
+        async function triggerRSSUpdate() {
+            try {
+                // Make a request to trigger RSS update
+                const response = await fetch('/update-rss', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        timestamp: Date.now(),
+                        trigger: 'new_activity'
+                    })
+                });
+                
+                if (response.ok) {
+                    console.log('RSS feed update triggered successfully');
+                } else {
+                    console.log('RSS feed update failed:', response.status);
+                }
+            } catch (error) {
+                console.log('Error triggering RSS update:', error);
+            }
+        }
+
+        // Function to check for new activity and trigger RSS update
+        function checkForNewActivityAndUpdateRSS(activities) {
+            // Check if we have activities and they're recent (within last hour)
+            if (activities && activities.length > 0) {
+                const mostRecentActivity = new Date(activities[0].created_at);
+                const now = new Date();
+                const hoursDiff = (now - mostRecentActivity) / (1000 * 60 * 60);
+                
+                // If most recent activity is within the last hour, trigger RSS update
+                if (hoursDiff < 1) {
+                    console.log('Recent activity detected, triggering RSS update...');
+                    triggerRSSUpdate();
+                }
+            }
         }
 
         // Load all activity when page loads

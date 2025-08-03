@@ -5,11 +5,19 @@
         <description>Recent activity from Jack O'Keeffe across GitHub, Mastodon, Nostr, and Letterboxd</description>
         <link>https://jackokeeffe.com</link>
         <language>en-US</language>
-        <lastBuildDate>Sun, 03 Aug 2025 03:30:21 GMT</lastBuildDate>
-        <pubDate>Sun, 03 Aug 2025 03:30:21 GMT</pubDate>
+        <lastBuildDate>Sun, 03 Aug 2025 19:25:14 GMT</lastBuildDate>
+        <pubDate>Sun, 03 Aug 2025 19:25:14 GMT</pubDate>
         <ttl>60</ttl>
         <atom:link href="https://jackokeeffe.com/rss.xml" rel="self" type="application/rss+xml" />
         
+        <item>
+            <title>Starred torvalds/linux</title>
+            <description>Starred torvalds/linux</description>
+            <link>https://github.com/torvalds/linux</link>
+            <guid>52886621366</guid>
+            <pubDate>Sun, 03 Aug 2025 17:47:20 GMT</pubDate>
+            <category>GitHub</category>
+        </item>
         <item>
             <title>Starred block/goose</title>
             <description>Starred block/goose</description>
@@ -64,14 +72,6 @@
             <link>https://github.com/BrowserWorks/waterfox</link>
             <guid>52802423458</guid>
             <pubDate>Thu, 31 Jul 2025 19:55:56 GMT</pubDate>
-            <category>GitHub</category>
-        </item>
-        <item>
-            <title>Pushed 1 commit to jackokeeffe/PROOFOFCONCEPT-NEW</title>
-            <description>Pushed 1 commit to jackokeeffe/PROOFOFCONCEPT-NEW</description>
-            <link>https://github.com/jackokeeffe/PROOFOFCONCEPT-NEW</link>
-            <guid>52799269668</guid>
-            <pubDate>Thu, 31 Jul 2025 18:28:17 GMT</pubDate>
             <category>GitHub</category>
         </item>
     </channel>

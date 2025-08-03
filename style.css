@@ -183,6 +183,7 @@ body{
     align-items: center;
     justify-content: space-between;
     margin-bottom: 15px;
+    padding: 0;
 }
 
 .projects-header {
@@ -191,6 +192,7 @@ body{
     opacity: 0.9;
     letter-spacing: 0.01em;
     margin: 0;
+    padding: 0;
 }
 
 .projects-container {
@@ -312,11 +314,11 @@ body{
     }
     
     .projects-header {
-        font-size: 0.9rem;
+        font-size: 1.1rem;
     }
     
     .project-item {
-        padding: 5px 0;
+        padding: 4px 0;
     }
     
     .project-header {
@@ -325,12 +327,12 @@ body{
     }
     
     .project-icon {
-        width: 22px;
-        height: 22px;
+        width: 24px;
+        height: 24px;
     }
     
     .project-icon i {
-        font-size: 11px;
+        font-size: 13px;
     }
     
     .project-title {
@@ -338,17 +340,19 @@ body{
     }
     
     .project-description {
-        font-size: 0.7rem;
+        font-size: 1.1rem;
         margin-bottom: 6px;
+        margin-left: 21px; /* 16px activity icon + 5px gap to match activity content */
     }
     
     .project-links {
         gap: 4px;
+        margin-left: 21px; /* Match project description indentation */
     }
     
     .project-link {
-        font-size: 0.65rem;
-        padding: 3px 5px;
+        font-size: 1rem;
+        padding: 8px 12px;
     }
     
     /* Recent Activity mobile optimizations */
@@ -361,7 +365,7 @@ body{
     }
     
     .activity-header {
-        font-size: 0.9rem;
+        font-size: 1.1rem;
     }
     
     .activity-item {
@@ -370,20 +374,20 @@ body{
     }
     
     .activity-description {
-        font-size: 0.75rem;
+        font-size: 1.1rem;
     }
     
     .activity-time {
-        font-size: 0.6rem;
+        font-size: 0.9rem;
     }
     
     .activity-platform {
-        width: 14px;
-        height: 14px;
+        width: 16px;
+        height: 16px;
     }
     
     .activity-platform i {
-        font-size: 7px;
+        font-size: 9px;
     }
     
     /* Social icons mobile optimization - two rows */
@@ -422,18 +426,18 @@ body{
     }
     
     .box h1 {
-        font-size: 1rem;
+        font-size: 1.2rem;
         margin-bottom: 5px;
     }
     
     .box p {
-        font-size: 0.75rem;
+        font-size: 0.9rem;
         margin-bottom: 8px;
     }
     
     /* Project title mobile optimization to match activity header */
     .project-title {
-        font-size: 0.9rem;
+        font-size: 1rem;
     }
     
     /* Ensure no horizontal overflow */
@@ -467,6 +471,10 @@ body{
         margin-bottom: 25px;
     }
     
+    .project-item {
+        padding: 4px 0;
+    }
+    
     .activity-item {
         padding: 4px 0;
     }
@@ -494,41 +502,63 @@ body{
     }
     
     .box h1 {
-        font-size: 0.9rem;
+        font-size: 1.1rem;
     }
     
     .box p {
-        font-size: 0.7rem;
-    }
-    
-    .project-title {
         font-size: 0.85rem;
     }
     
+    .projects-header {
+        font-size: 1rem;
+    }
+    
+    .activity-header {
+        font-size: 1rem;
+    }
+    
+    .project-title {
+        font-size: 0.95rem;
+    }
+    
+    .project-icon {
+        width: 24px;
+        height: 24px;
+    }
+    
+    .project-icon i {
+        font-size: 12px;
+    }
+    
     .project-description {
-        font-size: 0.65rem;
+        font-size: 1rem;
+        margin-left: 19px; /* 14px activity icon + 5px gap to match activity content */
     }
     
     .project-link {
-        font-size: 0.6rem;
-        padding: 2px 4px;
+        font-size: 0.9rem;
+        padding: 5px 8px;
+    }
+    
+    .project-links {
+        margin-left: 19px; /* Match project description indentation */
     }
     
     .activity-description {
-        font-size: 0.7rem;
+        font-size: 1rem;
     }
     
     .activity-time {
-        font-size: 0.55rem;
+        font-size: 0.8rem;
     }
     
     .activity-platform {
-        width: 12px;
-        height: 12px;
+        width: 14px;
+        height: 14px;
     }
     
     .activity-platform i {
-        font-size: 6px;
+        font-size: 8px;
     }
 }
 
@@ -548,6 +578,7 @@ body{
     align-items: center;
     justify-content: space-between;
     margin-bottom: 15px;
+    padding: 0;
 }
 
 .activity-header {
@@ -556,6 +587,7 @@ body{
     opacity: 0.9;
     letter-spacing: 0.01em;
     margin: 0;
+    padding: 0;
 }
 
 #refresh-button {

@@ -25,6 +25,56 @@ const feedConfig = {
   email: "jokeeffe@protonmail.ch"
 };
 
+// Cache file to track last known activities
+const CACHE_FILE = '.rss-cache.json';
+
+// Function to load cached activities
+function loadCachedActivities() {
+  try {
+    if (fs.existsSync(CACHE_FILE)) {
+      const cacheData = fs.readFileSync(CACHE_FILE, 'utf8');
+      return JSON.parse(cacheData);
+    }
+  } catch (error) {
+    console.log('Error loading cache:', error.message);
+  }
+  return { activities: [], lastUpdate: null };
+}
+
+// Function to save cached activities
+function saveCachedActivities(activities) {
+  try {
+    const cacheData = {
+      activities: activities.map(activity => ({
+        title: activity.title,
+        link: activity.link,
+        guid: activity.guid,
+        pubDate: activity.pubDate,
+        platform: activity.platform
+      })),
+      lastUpdate: new Date().toISOString()
+    };
+    fs.writeFileSync(CACHE_FILE, JSON.stringify(cacheData, null, 2));
+    console.log('Cache updated with', activities.length, 'activities');
+  } catch (error) {
+    console.log('Error saving cache:', error.message);
+  }
+}
+
+// Function to check if there are new activities
+function hasNewActivities(currentActivities, cachedActivities) {
+  if (cachedActivities.length === 0) {
+    return true; // Always update if no cache exists
+  }
+  
+  // Compare the most recent activities
+  const currentGuids = currentActivities.slice(0, 3).map(a => a.guid);
+  const cachedGuids = cachedActivities.slice(0, 3).map(a => a.guid);
+  
+  // Check if any of the most recent activities are new
+  return currentGuids.some(guid => !cachedGuids.includes(guid));
+}
+
 // Function to fetch GitHub activity (matching the recent activity section)
 async function fetchGitHubActivity() {
   try {
@@ -451,6 +501,9 @@ async function main() {
   console.log('Generating RSS feed...');
   
   try {
+    // Load cached activities
+    const { activities: cachedActivities, lastUpdate } = loadCachedActivities();
+    
     // Fetch all activities (matching recent activity section)
     const [githubActivities, mastodonActivities, nostrActivities, letterboxdActivities] = await Promise.allSettled([
       fetchGitHubActivity(),
@@ -483,24 +536,35 @@ async function main() {
     // Limit to exactly 8 items (matching recent activity section)
     allActivities = allActivities.slice(0, 8);
     
-    // Generate RSS XML
-    const rssXML = generateRSSXML(allActivities);
-    
-    // Write to file
-    fs.writeFileSync('rss.xml', rssXML);
-    
-    console.log('RSS feed generated successfully!');
-    console.log(`File: rss.xml`);
-    console.log(`Size: ${rssXML.length.toLocaleString()} bytes`);
-    console.log(`Items: ${allActivities.length}`);
-    console.log(`Generated: ${new Date().toISOString()}`);
-    
-    // Log breakdown by platform
-    const platformCounts = {};
-    allActivities.forEach(activity => {
-      platformCounts[activity.platform] = (platformCounts[activity.platform] || 0) + 1;
-    });
-    console.log('Platform breakdown:', platformCounts);
+    // Check for new activities
+    if (hasNewActivities(allActivities, cachedActivities)) {
+      console.log('New activities detected. Regenerating RSS feed...');
+      
+      // Generate RSS XML
+      const rssXML = generateRSSXML(allActivities);
+      
+      // Write to file
+      fs.writeFileSync('rss.xml', rssXML);
+      
+      console.log('RSS feed generated successfully!');
+      console.log(`File: rss.xml`);
+      console.log(`Size: ${rssXML.length.toLocaleString()} bytes`);
+      console.log(`Items: ${allActivities.length}`);
+      console.log(`Generated: ${new Date().toISOString()}`);
+      
+      // Log breakdown by platform
+      const platformCounts = {};
+      allActivities.forEach(activity => {
+        platformCounts[activity.platform] = (platformCounts[activity.platform] || 0) + 1;
+      });
+      console.log('Platform breakdown:', platformCounts);
+      
+      // Save new activities to cache
+      saveCachedActivities(allActivities);
+    } else {
+      console.log('No new activities detected. RSS feed not regenerated.');
+      console.log(`Last update: ${lastUpdate}`);
+    }
     
   } catch (error) {
     console.error('Error generating RSS feed:', error);
