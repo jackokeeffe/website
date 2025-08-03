@@ -5,19 +5,11 @@
         <description>Recent activity from Jack O'Keeffe across GitHub, Mastodon, Nostr, and Letterboxd</description>
         <link>https://jackokeeffe.com</link>
         <language>en-US</language>
-        <lastBuildDate>Sat, 02 Aug 2025 21:52:17 GMT</lastBuildDate>
-        <pubDate>Sat, 02 Aug 2025 21:52:17 GMT</pubDate>
+        <lastBuildDate>Sun, 03 Aug 2025 03:30:21 GMT</lastBuildDate>
+        <pubDate>Sun, 03 Aug 2025 03:30:21 GMT</pubDate>
         <ttl>60</ttl>
         <atom:link href="https://jackokeeffe.com/rss.xml" rel="self" type="application/rss+xml" />
         
-        <item>
-            <title>hey. this is my first post!</title>
-            <description>hey. this is my first post!</description>
-            <link>https://mastodon.social/@jackokeeffe/114960593009011173</link>
-            <guid>f2c4cc1150bba71692ded71403572909</guid>
-            <pubDate>Sat, 02 Aug 2025 22:30:39 GMT</pubDate>
-            <category>Mastodon</category>
-        </item>
         <item>
             <title>Starred block/goose</title>
             <description>Starred block/goose</description>
@@ -72,6 +64,14 @@
             <link>https://github.com/BrowserWorks/waterfox</link>
             <guid>52802423458</guid>
             <pubDate>Thu, 31 Jul 2025 19:55:56 GMT</pubDate>
+            <category>GitHub</category>
+        </item>
+        <item>
+            <title>Pushed 1 commit to jackokeeffe/PROOFOFCONCEPT-NEW</title>
+            <description>Pushed 1 commit to jackokeeffe/PROOFOFCONCEPT-NEW</description>
+            <link>https://github.com/jackokeeffe/PROOFOFCONCEPT-NEW</link>
+            <guid>52799269668</guid>
+            <pubDate>Thu, 31 Jul 2025 18:28:17 GMT</pubDate>
             <category>GitHub</category>
         </item>
     </channel>
