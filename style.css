@@ -130,6 +130,7 @@ body{
     border: 1px solid rgba(255, 255, 255, 0.1);
     flex-shrink: 0;
     margin-top: -2px;
+    position: relative;
 }
 
 .social-icon:hover {
@@ -144,6 +145,49 @@ body{
     display: block;
     margin: auto;
     filter: brightness(0) invert(1);
+}
+
+/* Tooltip styles */
+.social-icon::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 300;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 9999;
+    margin-top: 12px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    pointer-events: none;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', monospace;
+    letter-spacing: 0.01em;
+    min-width: max-content;
+    text-transform: lowercase;
+}
+
+.social-icon:hover::after {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* Ensure tooltips work even with potential conflicts */
+.social-icons .social-icon {
+    position: relative !important;
+}
+
+.social-icons .social-icon::after {
+    content: attr(data-tooltip) !important;
 }
 
 .popup {
