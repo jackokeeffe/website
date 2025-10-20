@@ -1040,7 +1040,7 @@
                 case 'PushEvent':
                     return {
                         icon: 'fas fa-code-branch',
-                        description: `Pushed ${event.payload.commits?.length || 0} commit${event.payload.commits?.length !== 1 ? 's' : ''} to ${event.repo.name}`,
+                        description: `Pushed commit${event.payload.commits?.length !== 1 ? 's' : ''} to ${event.repo.name}`,
                         link: `https://github.com/${event.repo.name}`,
                         time,
                         platform: 'github',
