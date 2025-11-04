@@ -11,7 +11,6 @@
     <link rel="icon" type="image/png" sizes="16x16" href="favicons/favicon-16x16.png">
     <link rel="manifest" href="favicons/site.webmanifest">
     <link rel="shortcut icon" href="favicons/favicon.ico">
-    <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="rss.xml">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
@@ -27,7 +26,7 @@
 
     <!-- Security Headers -->
     <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://api.rss2json.com https://api.allorigins.win https://thingproxy.freeboard.io https://cors-anywhere.herokuapp.com https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' https://api.github.com https://mastodon.social https://api.rss2json.com https://api.allorigins.win https://thingproxy.freeboard.io https://cors-anywhere.herokuapp.com https://letterboxd.com wss:; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' https://api.github.com https://api.rss2json.com wss:; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
     <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
@@ -62,9 +61,6 @@
                     </div>
                     <p>interested in filmmaking, business, & technology.</p>
                 </div>
-                <div class="headshot">
-                    <img src="headshot.jpg" alt="Jack O'Keeffe" onerror="this.style.display='none'">
-                </div>
             </div>
             <div style="display: flex; align-items: center; margin-bottom: 50px;">
                 <div class="location">
@@ -80,7 +76,6 @@
                     <a href="https://linkedin.com/in/jckokeeffe/" class="social-icon" target="_blank" data-tooltip="LinkedIn"><i class="fab fa-linkedin"></i></a>
                     <a href="https://github.com/jackokeeffe" class="social-icon" target="_blank" data-tooltip="GitHub"><i class="fab fa-github"></i></a>
                     <a href="https://letterboxd.com/jackokeeffe" class="social-icon" target="_blank" data-tooltip="Letterboxd"><i class="fa-brands fa-letterboxd"></i></a>
-                    <!--<a href="rss.xml" class="social-icon" title="RSS Feed"><i class="fas fa-rss"></i></a>-->
                 </div>
             </div>
             
@@ -137,7 +132,7 @@
                 // Show popup
                 showPopup('Nostr public key copied to clipboard');
             }).catch(function(err) {
-                console.error('Failed to copy: ', err);
+                // Silent error handling
             });
         }
 
@@ -149,19 +144,7 @@
                 // Show popup
                 showPopup('Matrix ID copied to clipboard');
             }).catch(function(err) {
-                console.error('Failed to copy: ', err);
-            });
-        }
-
-        function copySignalNumber() {
-            const signalNumber = '+1234567890';
-            
-            // Copy to clipboard
-            navigator.clipboard.writeText(signalNumber).then(function() {
-                // Show popup
-                showPopup('Signal number copied to clipboard');
-            }).catch(function(err) {
-                console.error('Failed to copy: ', err);
+                // Silent error handling
             });
         }
 
@@ -192,99 +175,34 @@
             });
         }
         
-        // Debug function to check RSS feed directly
-        async function debugRSSFeed() {
-            console.log('=== DEBUGGING RSS FEED ===');
-            const rssUrl = 'https://letterboxd.com/jackokeeffe/rss/';
-            
-            try {
-                // Try RSS2JSON first
-                const response = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}&_t=${Date.now()}`);
-                const data = await response.json();
-                
-                console.log('RSS2JSON response:', data);
-                console.log('Number of items:', data.items ? data.items.length : 0);
-                
-                if (data.items && data.items.length > 0) {
-                    console.log('First 5 items:');
-                    data.items.slice(0, 5).forEach((item, index) => {
-                        console.log(`${index + 1}. ${item.title} - ${item.pubDate}`);
-                    });
-                }
-            } catch (error) {
-                console.error('RSS debug failed:', error);
-            }
-        }
-
-        // Activity Loading Functions
         async function loadAllActivity(forceRefresh = false) {
             const container = document.getElementById('activity-container');
             
             try {
-                console.log('Starting to load all activities...', forceRefresh ? '(force refresh)' : '');
-                
-                // Load GitHub, Mastodon, Nostr, and Letterboxd activity in parallel
-                const [githubEvents, mastodonPosts, nostrPosts, letterboxdActivity] = await Promise.allSettled([
+                const [githubEvents, nostrPosts, letterboxdActivity] = await Promise.allSettled([
                     loadGitHubActivity(),
-                    loadMastodonActivity(),
                     loadNostrActivity(),
                     loadLetterboxdActivity(forceRefresh)
                 ]);
                 
-                console.log('GitHub result:', githubEvents);
-                console.log('Mastodon result:', mastodonPosts);
-                console.log('Nostr result:', nostrPosts);
-                console.log('Letterboxd result:', letterboxdActivity);
-                
-                // Combine and sort all activities
                 const allActivities = [];
                 
                 if (githubEvents.status === 'fulfilled' && githubEvents.value) {
-                    console.log('Adding', githubEvents.value.length, 'GitHub activities');
                     allActivities.push(...githubEvents.value);
                 }
                 
-                if (mastodonPosts.status === 'fulfilled' && mastodonPosts.value) {
-                    console.log('Adding', mastodonPosts.value.length, 'Mastodon activities');
-                    allActivities.push(...mastodonPosts.value);
-                }
-                
                 if (nostrPosts.status === 'fulfilled' && nostrPosts.value) {
-                    console.log('Adding', nostrPosts.value.length, 'Nostr activities');
                     allActivities.push(...nostrPosts.value);
                 }
                 
                 if (letterboxdActivity.status === 'fulfilled' && letterboxdActivity.value) {
-                    console.log('Adding', letterboxdActivity.value.length, 'Letterboxd activities');
-                    console.log('Letterboxd activities to add:', letterboxdActivity.value);
                     allActivities.push(...letterboxdActivity.value);
-                } else {
-                    console.log('Letterboxd activity status:', letterboxdActivity.status);
-                    console.log('Letterboxd activity value:', letterboxdActivity.value);
                 }
                 
-                console.log('Total activities before sorting:', allActivities.length);
-                
-                // Sort by date (most recent first)
-                console.log('Activities before sorting:');
-                allActivities.forEach((activity, index) => {
-                    console.log(`${index}: ${activity.platform} - ${activity.created_at} - ${new Date(activity.created_at)}`);
-                });
-                
                 allActivities.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-                
-                console.log('Activities after sorting:');
-                allActivities.forEach((activity, index) => {
-                    console.log(`${index}: ${activity.platform} - ${activity.created_at} - ${new Date(activity.created_at)}`);
-                });
-                
-                console.log('Final activities to display:', allActivities.length);
                 displayAllActivities(allActivities);
                 
-                // Activity loaded successfully
-                
             } catch (error) {
-                console.error('Error loading activities:', error);
                 container.innerHTML = `
                     <div class="activity-error">
                         <i class="fas fa-exclamation-triangle"></i>
@@ -309,228 +227,68 @@
                 }));
                 
             } catch (error) {
-                console.error('Error fetching GitHub activity:', error);
-                return [];
-            }
-        }
-
-        async function loadMastodonActivity() {
-            try {
-                // Try multiple CORS proxies in case one fails
-                const rssUrl = 'https://mastodon.social/@jackokeeffe.rss';
-                const proxies = [
-                    `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`,
-                    `https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}`,
-                    `https://cors-anywhere.herokuapp.com/${rssUrl}`,
-                    `https://thingproxy.freeboard.io/fetch/${rssUrl}`
-                ];
-                
-                let xmlText = null;
-                let lastError = null;
-                
-                // Try each proxy until one works
-                for (const proxyUrl of proxies) {
-                    try {
-                        console.log('Trying proxy:', proxyUrl);
-                        const response = await fetch(proxyUrl);
-                        
-                        if (!response.ok) {
-                            throw new Error(`Proxy error: ${response.status}`);
-                        }
-                        
-                        const data = await response.json();
-                        
-                        // Handle different proxy response formats
-                        if (data.contents) {
-                            xmlText = data.contents;
-                            console.log('Got XML content via allorigins proxy');
-                        } else if (data.items && data.items.length > 0) {
-                            // RSS2JSON format
-                            const items = data.items;
-                            console.log('Found', items.length, 'Mastodon posts via RSS2JSON');
-                            console.log('RSS2JSON data:', data);
-                            
-                            const mastodonPosts = items.slice(0, 5).map(item => {
-                                console.log('Processing RSS2JSON post:', { 
-                                    title: item.title, 
-                                    link: item.link, 
-                                    pubDate: item.pubDate,
-                                    description: item.description 
-                                });
-                                
-                                // Parse the date for sorting
-                                const parsedDate = parseMastodonDate(item.pubDate);
-                                
-                                return {
-                                    type: 'MastodonPost',
-                                    created_at: parsedDate.toISOString(),
-                                    payload: {
-                                        title: item.title,
-                                        link: item.link,
-                                        description: item.description
-                                    },
-                                    platform: 'mastodon'
-                                };
-                            });
-                            
-                            console.log('Processed', mastodonPosts.length, 'Mastodon posts via RSS2JSON');
-                            return mastodonPosts;
-                        } else if (data.items && data.items.length === 0) {
-                            console.log('RSS2JSON returned empty items array, trying next proxy');
-                            throw new Error('No items found in RSS2JSON response');
-                        } else {
-                            xmlText = data;
-                            console.log('Got raw data from proxy');
-                        }
-                        
-                        console.log('Successfully fetched RSS via proxy');
-                        break;
-                        
-                    } catch (error) {
-                        console.log('Proxy failed:', error.message);
-                        lastError = error;
-                        continue;
-                    }
-                }
-                
-                if (!xmlText) {
-                    throw lastError || new Error('All proxies failed');
-                }
-                
-                // Parse the RSS XML
-                const parser = new DOMParser();
-                const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
-                const items = xmlDoc.querySelectorAll('item');
-                
-                console.log('Found', items.length, 'Mastodon posts via XML parsing');
-                
-                if (items.length === 0) {
-                    console.log('No items found in XML, trying next proxy');
-                    throw new Error('No items found in XML response');
-                }
-                
-                const mastodonPosts = Array.from(items).slice(0, 5).map(item => {
-                    const title = item.querySelector('title')?.textContent || '';
-                    const link = item.querySelector('link')?.textContent || '';
-                    const pubDate = item.querySelector('pubDate')?.textContent || '';
-                    const description = item.querySelector('description')?.textContent || '';
-                    
-                    console.log('Processing post:', { title, link, pubDate });
-                    
-                    return {
-                        type: 'MastodonPost',
-                        created_at: pubDate,
-                        payload: {
-                            title: title,
-                            link: link,
-                            description: description
-                        },
-                        platform: 'mastodon'
-                    };
-                });
-                
-                console.log('Processed', mastodonPosts.length, 'Mastodon posts');
-                return mastodonPosts;
-                
-            } catch (error) {
-                console.error('Error fetching Mastodon activity:', error);
                 return [];
             }
         }
 
         async function loadNostrActivity() {
             try {
-                console.log('Starting Nostr activity fetch...');
                 const pubkey = 'npub17reuqeddvdxuh6m0v8q53kk57n3a69su8m8x50u5ucu2qf8zj52qfls7nf';
-                
-                // Convert npub to hex
                 let hexPubkey;
                 try {
                     hexPubkey = window.NostrTools.nip19.decode(pubkey).data;
-                    console.log('Decoded hex pubkey:', hexPubkey);
                 } catch (e) {
-                    console.error('Failed to decode npub:', e);
                     return [];
                 }
                 
-                // List of reliable relays
                 const relays = [
                     'wss://relay.nostr.band',
                     'wss://relay.damus.io',
                     'wss://relay.snort.social',
                     'wss://nostr.wine',
                     'wss://nostr.mom',
-                    'wss://nos.lol',
-                    'wss://relay.current.fyi'
+                    'wss://nos.lol'
                 ];
                 
-                console.log('Connecting to relays:', relays);
-                
-                // Use nostr-tools SimplePool
                 const pool = new window.NostrTools.SimplePool();
-                
-                // Fetch latest 5 notes (kind 1)
                 const filter = {
                     kinds: [1],
                     authors: [hexPubkey],
                     limit: 5
                 };
                 
-                console.log('Using filter:', filter);
-                console.log('Available pool methods:', Object.getOwnPropertyNames(pool));
-                
                 let events = [];
                 try {
-                    console.log('Fetching events from relays...');
-                    // Add timeout to prevent hanging
                     const timeoutPromise = new Promise((_, reject) => 
                         setTimeout(() => reject(new Error('Relay timeout')), 10000)
                     );
                     
-                    // Try different nostr-tools API methods
                     let fetchPromise;
                     if (typeof pool.get === 'function') {
-                        console.log('Using pool.get() method');
                         fetchPromise = pool.get(relays, filter);
                     } else if (typeof pool.list === 'function') {
-                        console.log('Using pool.list() method');
                         fetchPromise = pool.list(relays, [filter]);
                     } else if (typeof pool.query === 'function') {
-                        console.log('Using pool.query() method');
                         fetchPromise = pool.query(relays, filter);
                     } else {
                         throw new Error('No valid pool method found');
                     }
                     
                     events = await Promise.race([fetchPromise, timeoutPromise]);
-                    
-                    console.log('Received events:', events);
-                    console.log('Events type:', typeof events);
-                    console.log('Events is array:', Array.isArray(events));
                 } catch (e) {
-                    console.error('Nostr relay fetch error:', e);
                     return [];
                 }
                 
-                // Handle single event vs array of events
                 let eventsArray = [];
                 if (Array.isArray(events)) {
                     eventsArray = events;
                 } else if (events && typeof events === 'object') {
-                    // Single event object
                     eventsArray = [events];
                 }
                 
-                console.log('Events array:', eventsArray.length);
-                
-                // Sort by created_at descending
                 eventsArray.sort((a, b) => b.created_at - a.created_at);
-                console.log('Sorted events:', eventsArray.length);
                 
-                // Map to activity format
-                const nostrPosts = eventsArray.map(ev => {
-                    console.log('Processing event:', ev);
-                    return {
+                const nostrPosts = eventsArray.map(ev => ({
                         type: 'NostrNote',
                         created_at: new Date(ev.created_at * 1000).toISOString(),
                         payload: {
@@ -539,349 +297,106 @@
                             link: `https://nostr.band/n/${ev.id}`
                         },
                         platform: 'nostr'
-                    };
-                });
+                }));
                 
-                // Close the pool to clean up connections
                 pool.close(relays);
-                
-                console.log('Final Nostr posts:', nostrPosts.length);
                 return nostrPosts;
             } catch (error) {
-                console.error('Error fetching Nostr activity (relay):', error);
                 return [];
             }
         }
 
-        // Function to clear Letterboxd cache
         function clearLetterboxdCache() {
             localStorage.removeItem('letterboxd_cache');
-            console.log('Cleared Letterboxd cache');
         }
         
         async function loadLetterboxdActivity(forceRefresh = false) {
-            const maxRetries = 2;
-            let lastError = null;
-            
-            // Clear cache if force refresh is requested
             if (forceRefresh) {
                 clearLetterboxdCache();
             }
             
-            for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            const getCachedData = () => {
                 try {
-                    console.log(`Starting Letterboxd activity fetch (attempt ${attempt}/${maxRetries})...`);
-                const rssUrl = 'https://letterboxd.com/jackokeeffe/rss/';
-                
-                // Generate multiple cache busting parameters to ensure fresh data
-                const timestamp = Date.now();
-                const randomId = Math.random().toString(36).substring(2, 15);
-                const cacheBusters = [
-                    `_t=${timestamp}`,
-                    `cb=${randomId}`,
-                    `nocache=${timestamp}`,
-                    `v=${timestamp}`
-                ];
-                
-                // Try multiple RSS proxies with aggressive cache busting - prioritize AllOrigins for fresh data
-                const proxies = [
-                    {
-                        url: `https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}&${cacheBusters[2]}&${cacheBusters[3]}`,
-                        name: 'AllOrigins',
-                        handler: (data) => {
-                            if (data.contents) {
-                                try {
-                                    // Extract base64 content from data URL
-                                    const base64Content = data.contents.split(',')[1];
-                                    const xmlContent = atob(base64Content);
-                                    
-                                    console.log('AllOrigins: Raw XML content length:', xmlContent.length);
-                                    
-                                    const parser = new DOMParser();
-                                    const xmlDoc = parser.parseFromString(xmlContent, 'text/xml');
-                                    const items = xmlDoc.querySelectorAll('item');
-                                    
-                                    console.log(`AllOrigins: Found ${items.length} items in XML`);
-                                    
-                                    const allItems = Array.from(items).map(item => ({
-                                        title: item.querySelector('title')?.textContent || '',
-                                        link: item.querySelector('link')?.textContent || '',
-                                        pubDate: item.querySelector('pubDate')?.textContent || '',
-                                        description: item.querySelector('description')?.textContent || ''
-                                    }));
-                                    
-                                    console.log(`AllOrigins: Processed ${allItems.length} items`);
-                                    console.log('AllOrigins: First 3 items:', allItems.slice(0, 3));
-                                    
-                                    // Verify we have recent data
-                                    if (allItems.length > 0) {
-                                        const firstItemDate = new Date(allItems[0].pubDate);
-                                        const now = new Date();
-                                        const daysDiff = (now - firstItemDate) / (1000 * 60 * 60 * 24);
-                                        console.log(`AllOrigins: First item is ${daysDiff.toFixed(1)} days old`);
-                                        
-                                        if (daysDiff > 7) {
-                                            console.log('AllOrigins: Warning - data seems old, might be cached');
-                                        }
-                                    }
-                                    
-                                    return {
-                                        items: allItems
-                                    };
-                                } catch (parseError) {
-                                    console.log('Failed to parse AllOrigins XML:', parseError.message);
+                    const cached = localStorage.getItem('letterboxd_cache');
+                    if (cached) {
+                        const parsed = JSON.parse(cached);
+                        if (Date.now() - parsed.timestamp < 1800000) {
+                            return parsed.activities || [];
+                        }
+                    }
+                } catch (e) {}
                                     return null;
-                                }
-                            }
-                            return null;
-                        }
-                    },
-                    {
-                        url: `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}&${cacheBusters[0]}&${cacheBusters[1]}&nocache=1`,
-                        name: 'RSS2JSON',
-                        handler: (data) => data.items ? data : null
-                    },
-                    {
-                        url: `https://thingproxy.freeboard.io/fetch/${rssUrl}?_t=${Date.now()}`,
-                        name: 'ThingProxy',
-                        handler: (data) => data.items ? data : null
-                    },
-                    {
-                        url: rssUrl,
-                        name: 'Direct RSS',
-                        handler: async (data) => {
-                            try {
-                                // This is a direct RSS fetch - data will be XML text
-                                const parser = new DOMParser();
-                                const xmlDoc = parser.parseFromString(data, 'text/xml');
-                                const items = xmlDoc.querySelectorAll('item');
-                                
-                                console.log(`Direct RSS: Found ${items.length} items`);
-                                
-                                const allItems = Array.from(items).map(item => ({
-                                    title: item.querySelector('title')?.textContent || '',
-                                    link: item.querySelector('link')?.textContent || '',
-                                    pubDate: item.querySelector('pubDate')?.textContent || '',
-                                    description: item.querySelector('description')?.textContent || ''
-                                }));
-                                
-                                console.log('Direct RSS: First 3 items:', allItems.slice(0, 3));
-                                
-                                return {
-                                    items: allItems
-                                };
-                            } catch (error) {
-                                console.log('Direct RSS failed:', error.message);
-                                return null;
-                            }
-                        }
-                    }
-                ];
+            };
+
+            const cached = getCachedData();
+            if (cached && !forceRefresh) {
+                return cached;
+            }
+
+            try {
+                const rssUrl = 'https://letterboxd.com/jackokeeffe/rss/';
+                const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}&count=10`;
                 
-                let data = null;
-                let lastError = null;
+                const response = await fetch(apiUrl);
+                if (!response.ok) throw new Error('API error');
                 
-                for (const proxy of proxies) {
-                    try {
-                        console.log(`Trying Letterboxd RSS proxy: ${proxy.name}`);
-                        
-                        // Add timeout to prevent hanging requests
-                        const controller = new AbortController();
-                        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-                        
-                        let responseData;
-                        
-                        if (proxy.name === 'Direct RSS') {
-                            // For direct RSS, fetch as text
-                            const response = await fetch(proxy.url, {
-                                signal: controller.signal
-                            });
-                            
-                            clearTimeout(timeoutId);
-                            
-                            if (!response.ok) {
-                                throw new Error(`${proxy.name} error: ${response.status}`);
-                            }
-                            
-                            responseData = await response.text();
-                        } else {
-                            // For proxy services, fetch as JSON
-                            const response = await fetch(proxy.url, {
-                                signal: controller.signal
-                            });
-                            
-                            clearTimeout(timeoutId);
-                            
-                            if (!response.ok) {
-                                throw new Error(`${proxy.name} error: ${response.status}`);
-                            }
-                            
-                            responseData = await response.json();
-                        }
-                        
-                        // Use the proxy-specific handler
-                        data = proxy.handler(responseData);
-                        
-                        if (data) {
-                            console.log(`Successfully fetched via ${proxy.name}`);
-                            break;
-                        } else {
-                            console.log(`${proxy.name} returned invalid data format`);
-                            continue;
-                        }
-                        
-                    } catch (error) {
-                        if (error.name === 'AbortError') {
-                            console.log(`${proxy.name} request timed out`);
-                        } else {
-                            console.log(`${proxy.name} failed:`, error.message);
-                        }
-                        lastError = error;
-                        continue;
-                    }
+                const data = await response.json();
+                if (data.status !== 'ok' || !data.items || data.items.length === 0) {
+                    return cached || [];
                 }
                 
-                if (!data) {
-                    console.error('All Letterboxd proxies failed. Last error:', lastError);
-                    // Return cached data if available, otherwise empty array
-                    const cachedData = localStorage.getItem('letterboxd_cache');
-                    if (cachedData) {
-                        try {
-                            const parsed = JSON.parse(cachedData);
-                            const cacheAge = Date.now() - parsed.timestamp;
-                            // Use cache if it's less than 30 minutes old (more aggressive)
-                            if (cacheAge < 1800000) {
-                                console.log('Using cached Letterboxd data (cache age:', Math.round(cacheAge / 1000 / 60), 'minutes)');
-                                return parsed.activities;
-                            } else {
-                                console.log('Cache too old, not using cached data');
-                            }
-                        } catch (e) {
-                            console.log('Failed to parse cached data');
-                        }
-                    }
-                    return [];
-                }
-                
-                console.log('Letterboxd RSS data:', data);
-                
-                if (!data.items || data.items.length === 0) {
-                    console.log('No Letterboxd items found');
-                    return [];
-                }
-                
-                console.log('Found', data.items.length, 'Letterboxd activities');
-                console.log('First 3 RSS items:', data.items.slice(0, 3).map(item => ({
-                    title: item.title,
-                    pubDate: item.pubDate
-                })));
-                
-                // Sort items by date (most recent first) to ensure we get the latest
-                const sortedItems = data.items.sort((a, b) => {
-                    const dateA = new Date(a.pubDate);
-                    const dateB = new Date(b.pubDate);
-                    return dateB - dateA; // Most recent first
-                });
-                
-                console.log('After sorting, first 3 items:', sortedItems.slice(0, 3).map(item => ({
-                    title: item.title,
-                    pubDate: item.pubDate
-                })));
-                
-                const letterboxdActivities = sortedItems.slice(0, 10).map(item => {
-                    console.log('Processing Letterboxd item:', item);
-                    
-                    // Parse the date
-                    const parsedDate = parseLetterboxdDate(item.pubDate);
-                    
-                    // Extract movie info from title
+                const activities = data.items.map(item => {
                     const movieInfo = parseLetterboxdTitle(item.title);
-                    
-                    const activity = {
+                    return {
                         type: 'LetterboxdActivity',
-                        created_at: parsedDate.toISOString(),
+                        created_at: new Date(item.pubDate).toISOString(),
                         payload: {
                             title: item.title,
                             link: item.link,
-                            description: item.description,
                             movieTitle: movieInfo.title,
-                            rating: movieInfo.rating,
-                            activityType: movieInfo.activityType
+                            year: movieInfo.year
                         },
                         platform: 'letterboxd'
                     };
-                    
-                    console.log('Created Letterboxd activity:', activity);
-                    return activity;
-                });
+                }).filter(a => a.payload.movieTitle);
                 
-                console.log('Processed', letterboxdActivities.length, 'Letterboxd activities');
-                console.log('Final Letterboxd activities:', letterboxdActivities);
-                
-                // Check if we have new data compared to cache
-                const cachedData = localStorage.getItem('letterboxd_cache');
-                if (cachedData && letterboxdActivities.length > 0) {
+                if (activities.length > 0) {
                     try {
-                        const parsed = JSON.parse(cachedData);
-                        if (parsed.latestItemDate && letterboxdActivities[0].created_at !== parsed.latestItemDate) {
-                            console.log('New Letterboxd data detected! Latest item changed from', parsed.latestItemDate, 'to', letterboxdActivities[0].created_at);
-                        }
-                    } catch (e) {
-                        console.log('Failed to compare with cached data');
-                    }
+                        localStorage.setItem('letterboxd_cache', JSON.stringify({
+                            activities: activities,
+                            timestamp: Date.now()
+                        }));
+                    } catch (e) {}
                 }
                 
-                // Cache the successful result with more metadata
-                try {
-                    const cacheData = {
-                        activities: letterboxdActivities,
-                        timestamp: Date.now(),
-                        lastFetch: new Date().toISOString(),
-                        itemCount: letterboxdActivities.length,
-                        // Store the first item's date to detect if we have new data
-                        latestItemDate: letterboxdActivities.length > 0 ? letterboxdActivities[0].created_at : null
-                    };
-                    localStorage.setItem('letterboxd_cache', JSON.stringify(cacheData));
-                    console.log('Cached Letterboxd data with', letterboxdActivities.length, 'items');
-                } catch (e) {
-                    console.log('Failed to cache Letterboxd data');
-                }
-                
-                return letterboxdActivities;
-                
-                } catch (error) {
-                    console.error(`Error fetching Letterboxd activity (attempt ${attempt}):`, error);
-                    lastError = error;
-                    
-                    if (attempt < maxRetries) {
-                        // Wait a bit before retrying
-                        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
-                        continue;
-                    }
-                }
+                return activities;
+            } catch (error) {
+                return cached || [];
             }
-            
-            // If all retries failed, try to use cached data
-            console.error('All Letterboxd fetch attempts failed. Last error:', lastError);
-            const cachedData = localStorage.getItem('letterboxd_cache');
-            if (cachedData) {
-                try {
-                    const parsed = JSON.parse(cachedData);
-                    const cacheAge = Date.now() - parsed.timestamp;
-                    // Use cache if it's less than 2 hours old
-                    if (cacheAge < 7200000) {
-                        console.log('Using cached Letterboxd data after all retries failed');
-                        return parsed.activities;
-                    }
-                } catch (e) {
-                    console.log('Failed to parse cached data');
-                }
-            }
-            
-            return [];
         }
 
-        // Global variable to store all activities and track display state
+        function parseLetterboxdTitle(title) {
+            const result = {
+                title: '',
+                year: '',
+                rating: 0,
+                activityType: 'watched'
+            };
+            
+            const yearMatch = title.match(/, (\d{4})/);
+            if (yearMatch) {
+                result.year = yearMatch[1];
+                let cleanTitle = title.substring(0, title.indexOf(', ' + yearMatch[1]));
+                cleanTitle = cleanTitle.replace(/\s*-\s*[★☆]+.*$/, '');
+                result.title = cleanTitle.trim();
+            } else {
+                let cleanTitle = title.replace(/\s*-\s*[★☆]+.*$/, '');
+                result.title = cleanTitle.trim();
+            }
+            
+            return result;
+        }
+
         let allActivities = [];
         let currentDisplayCount = 4;
 
@@ -952,47 +467,16 @@
             displayActivitiesWithLoadMore();
         }
 
-        function displayActivities(events) {
-            // Legacy function for backward compatibility
-            displayAllActivities(events);
-        }
-
         function isDisplayableActivity(activity) {
-            console.log('Checking if activity is displayable:', activity);
-            
             if (activity.platform === 'github') {
-                const displayableTypes = [
-                    'PushEvent',
-                    'CreateEvent',
-                    'WatchEvent',
-                    'ForkEvent',
-                    'PullRequestEvent',
-                    'IssuesEvent',
-                    'CommitCommentEvent'
-                ];
-                const isDisplayable = displayableTypes.includes(activity.type);
-                console.log('GitHub activity displayable:', isDisplayable);
-                return isDisplayable;
-            } else if (activity.platform === 'mastodon') {
-                const isDisplayable = activity.type === 'MastodonPost';
-                console.log('Mastodon activity displayable:', isDisplayable);
-                return isDisplayable;
+                const displayableTypes = ['PushEvent', 'CreateEvent', 'WatchEvent', 'ForkEvent', 'PullRequestEvent', 'IssuesEvent', 'CommitCommentEvent'];
+                return displayableTypes.includes(activity.type);
             } else if (activity.platform === 'nostr') {
-                const isDisplayable = activity.type === 'NostrNote';
-                console.log('Nostr activity displayable:', isDisplayable);
-                return isDisplayable;
+                return activity.type === 'NostrNote';
             } else if (activity.platform === 'letterboxd') {
-                const isDisplayable = activity.type === 'LetterboxdActivity';
-                console.log('Letterboxd activity displayable:', isDisplayable);
-                return isDisplayable;
+                return activity.type === 'LetterboxdActivity';
             }
-            console.log('Unknown platform, not displayable');
             return false;
-        }
-
-        function isDisplayableEvent(event) {
-            // Legacy function for backward compatibility
-            return isDisplayableActivity(event);
         }
 
         function createActivityHTML(activity) {
@@ -1011,7 +495,6 @@
                     <div class="activity-platform">
                         ${platformLink ? `<a href="${platformLink}" target="_blank" title="View profile">` : ''}
                         ${platform === 'github' ? '<i class="fab fa-github"></i>' : 
-                          platform === 'mastodon' ? '<i class="fab fa-mastodon"></i>' : 
                           platform === 'nostr' ? '<img src="nostr.svg" alt="Nostr" style="width: 12px; height: 12px;">' :
                           platform === 'letterboxd' ? '<i class="fa-brands fa-letterboxd"></i>' : 
                           '<i class="fas fa-bolt"></i>'}
@@ -1024,8 +507,6 @@
         function parseActivity(activity) {
             if (activity.platform === 'github') {
                 return parseGitHubEvent(activity);
-            } else if (activity.platform === 'mastodon') {
-                return parseMastodonPost(activity);
             } else if (activity.platform === 'nostr') {
                 return parseNostrNote(activity);
             } else if (activity.platform === 'letterboxd') {
@@ -1133,29 +614,6 @@
             }
         }
 
-        function parseMastodonPost(post) {
-            const parsedDate = parseMastodonDate(post.created_at);
-            const time = formatRelativeTime(parsedDate);
-            
-            // Use description if title is empty, otherwise use title
-            let content = post.payload.title || post.payload.description || 'Mastodon post';
-            
-            // Clean up the content (remove HTML tags if present)
-            const cleanContent = content.replace(/<[^>]*>/g, '').trim();
-            
-            // If content is still empty or just whitespace, use a default
-            const finalContent = cleanContent || 'Posted on Mastodon';
-            
-            return {
-                icon: 'fab fa-mastodon',
-                description: finalContent.length > 100 ? finalContent.substring(0, 100) + '...' : finalContent,
-                link: post.payload.link,
-                time,
-                platform: 'mastodon',
-                platformLink: 'https://mastodon.social/@jackokeeffe'
-            };
-        }
-
         function parseNostrNote(note) {
             const time = formatRelativeTime(new Date(note.created_at));
             const content = note.payload.content || 'Nostr note';
@@ -1181,10 +639,15 @@
 
         function parseLetterboxdActivity(activity) {
             const time = formatRelativeTime(new Date(activity.created_at));
-            const movieTitle = activity.payload.movieTitle || 'Unknown movie';
+            let movieTitle = activity.payload.movieTitle || 'Unknown movie';
             const year = activity.payload.year;
             
-            // Create description in format: "Watched - Movie Title, year"
+            // Remove year from title if it's already there (e.g., "Movie, 2021" -> "Movie")
+            if (year) {
+                const yearPattern = new RegExp(`,\\s*${year}\\s*$`);
+                movieTitle = movieTitle.replace(yearPattern, '').trim();
+            }
+            
             let description = `Watched - ${movieTitle}`;
             if (year) {
                 description += `, ${year}`;
@@ -1200,11 +663,6 @@
             };
         }
 
-        function parseEvent(event) {
-            // Legacy function for backward compatibility
-            return parseActivity(event);
-        }
-
         function formatRelativeTime(date) {
             const now = new Date();
             const diffInSeconds = Math.floor((now - date) / 1000);
@@ -1216,81 +674,6 @@
             if (diffInSeconds < 31536000) return `${Math.floor(diffInSeconds / 2592000)} month${Math.floor(diffInSeconds / 2592000) !== 1 ? 's' : ''} ago`;
             return `${Math.floor(diffInSeconds / 31536000)} year${Math.floor(diffInSeconds / 31536000) !== 1 ? 's' : ''} ago`;
         }
-
-        function parseMastodonDate(dateString) {
-            console.log('Parsing Mastodon date:', dateString);
-            
-            // Try different date formats
-            let date;
-            
-            // Format: "2025-08-02 18:30:39"
-            if (dateString.match(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/)) {
-                date = new Date(dateString + ' UTC');
-                console.log('Parsed as local time with UTC:', date);
-            }
-            // Format: "Sat, 02 Aug 2025 18:30:39 +0000"
-            else if (dateString.includes('+0000') || dateString.includes('GMT')) {
-                date = new Date(dateString);
-                console.log('Parsed as RFC format:', date);
-            }
-            // Try standard Date parsing
-            else {
-                date = new Date(dateString);
-                console.log('Parsed as standard format:', date);
-            }
-            
-            console.log('Final parsed date:', date);
-            console.log('Date is valid:', !isNaN(date.getTime()));
-            
-            return date;
-        }
-
-        function parseLetterboxdDate(dateString) {
-            console.log('Parsing Letterboxd date:', dateString);
-            
-            // Letterboxd uses RFC format like "Thu, 24 Jul 2025 09:09:36 +1200"
-            const date = new Date(dateString);
-            
-            console.log('Parsed Letterboxd date:', date);
-            console.log('Date is valid:', !isNaN(date.getTime()));
-            
-            return date;
-        }
-
-        function parseLetterboxdTitle(title) {
-            console.log('Parsing Letterboxd title:', title);
-            
-            // Example titles:
-            // "Presence, 2024 - ★★"
-            // "Eddington, 2025 - ★★"
-            // "The Place Beyond the Pines, 2012 - ★★★★"
-            
-            const result = {
-                title: '',
-                year: '',
-                rating: 0, // Don't show rating
-                activityType: 'watched'
-            };
-            
-            // Extract year first
-            const yearMatch = title.match(/, (\d{4})/);
-            if (yearMatch) {
-                result.year = yearMatch[1];
-                // Get title up to the year (including the full year)
-                cleanTitle = title.substring(0, title.indexOf(', ' + yearMatch[1]) + 6);
-            } else {
-                cleanTitle = title;
-            }
-            
-            // Remove any rating/stars that might be left
-            cleanTitle = cleanTitle.replace(/\s*-\s*[★☆]+.*$/, '');
-            
-            result.title = cleanTitle.trim();
-            
-            console.log('Parsed Letterboxd info:', result);
-            return result;
-        }
-
 
         // Load all activity when page loads
         document.addEventListener('DOMContentLoaded', function() {
